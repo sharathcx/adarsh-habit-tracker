@@ -54,7 +54,7 @@ export function Celebrate({ show, dayNumber, onDismiss }: Props) {
             transition={{ type: "spring", stiffness: 220, damping: 22 }}
             className="mx-6 max-w-md rounded-3xl bg-card px-8 py-10 text-center shadow-2xl ring-1 ring-border"
           >
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground">
               Day {dayNumber}
             </div>
             <div className="mt-3 text-4xl font-semibold tracking-tight">Day complete.</div>
@@ -63,7 +63,7 @@ export function Celebrate({ show, dayNumber, onDismiss }: Props) {
             </p>
             <button
               onClick={onDismiss}
-              className="mt-7 inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+              className="mt-7 inline-flex items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black px-6 py-2.5 text-sm font-medium shadow-sm transition-opacity hover:opacity-90"
             >
               Close
             </button>

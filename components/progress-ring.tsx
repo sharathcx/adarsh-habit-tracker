@@ -58,7 +58,7 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           style={{ strokeDashoffset: dash }}
-          className="text-primary"
+          className="text-black dark:text-white"
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">

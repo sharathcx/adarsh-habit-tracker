@@ -66,7 +66,7 @@ export function Heatmap({ days, dailyTarget }: Props) {
               day.minutes,
               dailyTarget,
               day.isFuture,
-            )} ${day.isToday ? "ring-2 ring-primary ring-offset-2 ring-offset-card" : ""}`}
+            )} ${day.isToday ? "ring-2 ring-black dark:ring-white ring-offset-2 ring-offset-card" : ""}`}
           />
         ))}
       </div>

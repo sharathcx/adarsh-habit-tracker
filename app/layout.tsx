@@ -36,7 +36,7 @@ export default function RootLayout({
               href="/"
               className="inline-flex items-center gap-2 font-semibold tracking-tight"
             >
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-primary text-primary-foreground text-[11px] font-bold">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-black text-white dark:bg-white dark:text-black text-[11px] font-bold">
                 GD
               </span>
               <span>GATE DA</span>
