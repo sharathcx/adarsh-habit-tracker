@@ -14,7 +14,7 @@ export function Celebrate({ show, dayNumber, onDismiss }: Props) {
   useEffect(() => {
     if (!show) return;
     const end = Date.now() + 900;
-    const colors = ["#a78bfa", "#34d399", "#fbbf24", "#fb7185", "#22d3ee", "#60a5fa"];
+    const colors = ["#000000", "#18181b", "#3f3f46", "#71717a", "#a1a1aa", "#e4e4e7", "#ffffff"];
     (function frame() {
       confetti({
         particleCount: 4,

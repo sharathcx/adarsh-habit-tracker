@@ -46,7 +46,7 @@ export function ProgressRing({
           stroke="currentColor"
           strokeWidth={stroke}
           fill="none"
-          className="text-[#e8e0d0]"
+          className="text-zinc-200 dark:text-zinc-800"
         />
         <motion.circle
           cx={size / 2}

@@ -11,13 +11,13 @@ type Props = {
 };
 
 function intensityClass(minutes: number, target: number, isFuture: boolean): string {
-  if (isFuture) return "bg-muted/50";
-  if (minutes === 0) return "bg-muted";
+  if (isFuture) return "bg-zinc-100/50 dark:bg-zinc-900/40";
+  if (minutes === 0) return "bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50";
   const ratio = minutes / target;
-  if (ratio >= 1) return "bg-amber-500";
-  if (ratio >= 0.66) return "bg-primary/70";
-  if (ratio >= 0.33) return "bg-primary/45";
-  return "bg-primary/20";
+  if (ratio >= 1) return "bg-black dark:bg-white";
+  if (ratio >= 0.66) return "bg-zinc-700 dark:bg-zinc-300";
+  if (ratio >= 0.33) return "bg-zinc-500 dark:bg-zinc-500";
+  return "bg-zinc-300 dark:bg-zinc-700";
 }
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -77,11 +77,11 @@ export function Heatmap({ days, dailyTarget }: Props) {
         </span>
         <div className="flex items-center gap-2">
           <span>less</span>
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-muted" />
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/20" />
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/45" />
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/70" />
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-amber-500" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-zinc-300 dark:bg-zinc-700" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-zinc-500 dark:bg-zinc-500" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-zinc-700 dark:bg-zinc-300" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-black dark:bg-white" />
           <span>6h+</span>
         </div>
       </div>

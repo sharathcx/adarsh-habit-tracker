@@ -73,14 +73,14 @@ export function RevisionView({ state }: Props) {
       <section className="relative overflow-hidden rounded-3xl bg-card p-6 shadow-sm ring-1 ring-border/60">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-indigo-300/20 blur-3xl"
+          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-foreground/5 blur-3xl"
         />
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-sm"
               style={{
-                background: "linear-gradient(135deg, #6366f1 0%, #818cf8 55%, #c7d2fe 100%)",
+                background: "linear-gradient(135deg, #09090b 0%, #18181b 50%, #27272a 100%)",
               }}
             >
               <Repeat size={22} className="text-white drop-shadow-sm" strokeWidth={2.2} />
@@ -106,7 +106,7 @@ export function RevisionView({ state }: Props) {
           <div
             className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm"
             style={{
-              background: "linear-gradient(135deg, #6366f1 0%, #818cf8 55%, #c7d2fe 100%)",
+              background: "linear-gradient(135deg, #09090b 0%, #18181b 50%, #27272a 100%)",
             }}
           >
             <Repeat size={26} className="text-white" strokeWidth={2.2} />
@@ -128,13 +128,11 @@ export function RevisionView({ state }: Props) {
                 className="relative rounded-3xl p-5 shadow-sm ring-1 ring-border/60 transition-shadow hover:shadow-md"
                 style={{
                   backgroundColor: "var(--card)",
-                  backgroundImage: `radial-gradient(circle at top right, ${g.subject.color}22, transparent 60%)`,
                 }}
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className="h-9 w-1.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: g.subject.color }}
+                    className="h-9 w-1.5 shrink-0 rounded-full bg-foreground"
                   />
                   <div className="min-w-0">
                     <h2 className="truncate text-[15px] font-semibold tracking-tight">
@@ -234,21 +232,21 @@ function RevisionTopicRow({
 
 function RevisionBox({
   checked,
-  color,
   pending,
   onClick,
   title,
 }: {
   checked: boolean;
-  color: string;
+  color?: string;
   pending: boolean;
   onClick?: () => void;
   title: string;
 }) {
   const base =
     "flex size-5 items-center justify-center rounded-md shadow-sm ring-1 transition-colors";
-  const look = checked ? "text-white ring-transparent" : "bg-card ring-border/70";
-  const style = checked ? { backgroundColor: color } : undefined;
+  const look = checked
+    ? "bg-foreground text-background ring-foreground"
+    : "bg-card text-foreground ring-border/80 hover:ring-foreground";
   const icon = (
     <Check size={12} strokeWidth={3} className={checked ? "" : "opacity-0"} />
   );
@@ -256,7 +254,7 @@ function RevisionBox({
   // Static (display-only) box for earlier, already-logged revisions.
   if (!onClick) {
     return (
-      <span className={`${base} ${look}`} style={style} title={title} aria-hidden>
+      <span className={`${base} ${look}`} title={title} aria-hidden>
         {icon}
       </span>
     );
@@ -272,8 +270,7 @@ function RevisionBox({
       transition={{ type: "spring", stiffness: 500, damping: 16 }}
       title={title}
       aria-pressed={checked}
-      className={`${base} ${look} cursor-pointer hover:ring-primary disabled:cursor-not-allowed disabled:opacity-50`}
-      style={style}
+      className={`${base} ${look} cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}
     >
       {icon}
     </motion.button>

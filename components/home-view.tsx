@@ -185,14 +185,14 @@ export function HomeView({ state }: Props) {
         <aside className="scrollbar-hide flex shrink-0 flex-col gap-5 lg:basis-[44%] lg:overflow-y-auto lg:pb-2 lg:pr-2">
           {/* Hero card */}
           <section className="relative shrink-0 overflow-hidden rounded-3xl bg-card p-6 shadow-sm ring-1 ring-border/60">
-            {/* Decorative blobs */}
+            {/* Decorative ambient blur */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/15 blur-3xl"
+              className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-foreground/5 blur-3xl"
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-amber-300/20 blur-3xl"
+              className="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-foreground/5 blur-3xl"
             />
 
             {/* Floating gradient orb */}
@@ -212,7 +212,7 @@ export function HomeView({ state }: Props) {
                 className="relative flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg ring-4 ring-card"
                 style={{
                   background:
-                    "linear-gradient(135deg, #f97316 0%, #fb923c 35%, #fbbf24 70%, #fde68a 100%)",
+                    "linear-gradient(135deg, #09090b 0%, #18181b 40%, #27272a 75%, #3f3f46 100%)",
                 }}
               >
                 <Sparkles size={18} className="text-white drop-shadow-sm" strokeWidth={2.5} />
@@ -220,12 +220,12 @@ export function HomeView({ state }: Props) {
               <motion.div
                 animate={{ scale: [1, 1.6, 1], opacity: [0.7, 0, 0.7] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
-                className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-amber-400"
+                className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-zinc-400"
               />
               <motion.div
                 animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
                 transition={{ duration: 2.4, repeat: Infinity, delay: 1.2, ease: "easeOut" }}
-                className="absolute -bottom-1 -left-1 h-2 w-2 rounded-full bg-primary"
+                className="absolute -bottom-1 -left-1 h-2 w-2 rounded-full bg-foreground"
               />
             </motion.div>
 
@@ -242,19 +242,7 @@ export function HomeView({ state }: Props) {
               />
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-semibold leading-tight tracking-tight">
-                  Today&apos;s the day{" "}
-                  <motion.span
-                    animate={{ rotate: [0, 18, -8, 18, 0] }}
-                    transition={{
-                      duration: 1.4,
-                      repeat: Infinity,
-                      repeatDelay: 4,
-                      ease: "easeInOut",
-                    }}
-                    style={{ display: "inline-block", transformOrigin: "70% 70%" }}
-                  >
-                    👋
-                  </motion.span>
+                  Today&apos;s the day
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   {hitTarget
@@ -263,7 +251,7 @@ export function HomeView({ state }: Props) {
                 </p>
               </div>
               <div className="flex flex-wrap justify-center gap-2">
-                <StatChip icon={<Flame size={13} className="text-primary" />}>
+                <StatChip icon={<Flame size={13} className="text-foreground" />}>
                   <span className="tabular-nums">{state.streak}</span>
                   <span className="text-muted-foreground">day streak</span>
                 </StatChip>
@@ -365,24 +353,24 @@ function DeadlineCard({ state }: { state: AppState }) {
   let verdict: string;
 
   if (remainingMin === 0) {
-    tone = "bg-emerald-50 text-emerald-800 ring-emerald-500/30";
-    icon = <Check size={13} className="mt-px shrink-0" strokeWidth={3} />;
+    tone = "bg-secondary text-foreground ring-border/80";
+    icon = <Check size={13} className="mt-px shrink-0 text-foreground" strokeWidth={3} />;
     verdict = `Syllabus finished, ${state.daysToDeadline} days ahead of ${label}.`;
   } else if (state.daysToDeadline === 0) {
-    tone = "bg-rose-50 text-rose-800 ring-rose-500/30";
-    icon = <TriangleAlert size={13} className="mt-px shrink-0" />;
+    tone = "bg-secondary text-foreground ring-border/80";
+    icon = <TriangleAlert size={13} className="mt-px shrink-0 text-foreground" />;
     verdict = `${label} has passed — ${state.estDaysRemaining} more days at ${formatDuration(state.dailyTarget)}/day to finish.`;
   } else if (buffer > 0) {
-    tone = "bg-emerald-50 text-emerald-800 ring-emerald-500/30";
-    icon = <Check size={13} className="mt-px shrink-0" strokeWidth={3} />;
+    tone = "bg-secondary text-foreground ring-border/80";
+    icon = <Check size={13} className="mt-px shrink-0 text-foreground" strokeWidth={3} />;
     verdict = `On track — ${buffer} ${buffer === 1 ? "day" : "days"} of buffer at ${formatDuration(state.dailyTarget)}/day.`;
   } else if (buffer === 0) {
-    tone = "bg-amber-50 text-amber-800 ring-amber-500/30";
-    icon = <CalendarClock size={13} className="mt-px shrink-0" />;
+    tone = "bg-secondary text-foreground ring-border/80";
+    icon = <CalendarClock size={13} className="mt-px shrink-0 text-foreground" />;
     verdict = `Exactly on pace — every day up to ${label} has to hit ${formatDuration(state.dailyTarget)}.`;
   } else {
-    tone = "bg-rose-50 text-rose-800 ring-rose-500/30";
-    icon = <TriangleAlert size={13} className="mt-px shrink-0" />;
+    tone = "bg-secondary text-foreground ring-border/80";
+    icon = <TriangleAlert size={13} className="mt-px shrink-0 text-foreground" />;
     verdict = `${-buffer} ${buffer === -1 ? "day" : "days"} short — needs ${formatDuration(
       state.requiredDailyMin ?? state.dailyTarget,
     )}/day to make ${label}.`;
@@ -427,7 +415,7 @@ function StatChip({ children, icon }: { children: React.ReactNode; icon?: React.
     <motion.span
       whileHover={{ scale: 1.05, y: -1 }}
       transition={{ type: "spring", stiffness: 400, damping: 18 }}
-      className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium shadow-sm ring-1 ring-amber-200/40"
+      className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium shadow-sm ring-1 ring-border/80"
     >
       {icon}
       {children}
@@ -446,8 +434,7 @@ function SessionItem({ session, onDelete }: { session: ClientSession; onDelete: 
       className="group flex items-center gap-3 rounded-2xl bg-secondary px-4 py-3 text-sm"
     >
       <span
-        className="h-2 w-2 shrink-0 rounded-full"
-        style={{ backgroundColor: session.subjectColor }}
+        className="h-2 w-2 shrink-0 rounded-full bg-foreground"
       />
       <span className="min-w-0 flex-1 truncate font-medium">{session.topicName}</span>
       <span className="shrink-0 tabular-nums text-muted-foreground">
@@ -492,7 +479,6 @@ function SubjectSection({
       className="relative rounded-3xl p-5 shadow-sm ring-1 ring-border/60 transition-shadow hover:shadow-md"
       style={{
         backgroundColor: "var(--card)",
-        backgroundImage: `radial-gradient(circle at top right, ${subject.color}22, transparent 60%)`,
       }}
     >
       <button
@@ -509,19 +495,16 @@ function SubjectSection({
             <ChevronRight size={14} />
           </motion.span>
 
-          {/* Gradient icon block */}
+          {/* Monochrome icon block */}
           <motion.div
             whileHover={{ rotate: -4, scale: 1.06 }}
             transition={{ type: "spring", stiffness: 400, damping: 16 }}
-            className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl shadow-sm"
-            style={{
-              background: `linear-gradient(135deg, ${subject.color} 0%, ${subject.color}cc 55%, ${subject.color}66 100%)`,
-            }}
+            className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-foreground shadow-sm"
           >
-            <Icon size={20} className="text-white drop-shadow-sm" strokeWidth={2.2} />
+            <Icon size={20} className="text-background drop-shadow-sm" strokeWidth={2.2} />
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 via-transparent to-transparent"
+              className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 via-transparent to-transparent"
             />
           </motion.div>
 
@@ -544,10 +527,9 @@ function SubjectSection({
 
       <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full transition-all duration-500"
+          className="h-full rounded-full bg-foreground transition-all duration-500"
           style={{
             width: `${Math.min(100, subject.percent)}%`,
-            backgroundColor: subject.color,
           }}
         />
       </div>
@@ -685,10 +667,9 @@ function TopicRow({
           <div className="mt-2 flex items-center gap-2">
             <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full"
+                className="h-full rounded-full bg-foreground"
                 style={{
                   width: `${Math.min(100, topic.percent)}%`,
-                  backgroundColor: subjectColor,
                 }}
               />
             </div>
@@ -709,14 +690,14 @@ function TopicRow({
                 whileHover={{ scale: 1.08, y: -1 }}
                 whileTap={{ scale: 0.92 }}
                 transition={{ type: "spring", stiffness: 500, damping: 18 }}
-                className="rounded-full bg-card px-2.5 py-1 text-[11px] font-medium tabular-nums text-muted-foreground shadow-sm ring-1 ring-border/60 transition-colors hover:bg-primary hover:text-primary-foreground hover:ring-primary disabled:opacity-50"
+                className="rounded-full bg-card px-2.5 py-1 text-[11px] font-medium tabular-nums text-foreground shadow-sm ring-1 ring-border/80 transition-colors hover:bg-foreground hover:text-background hover:ring-foreground disabled:opacity-50"
                 title={`Log ${formatDuration(m)}`}
               >
                 +{m < 60 ? `${m}m` : `${m / 60}h`}
               </motion.button>
             ))}
 
-          {/* Notes button: always visible, amber-emphasized when a note is required */}
+          {/* Notes button: always visible */}
           <motion.button
             type="button"
             onClick={() => setNotesOpen((v) => !v)}
@@ -725,10 +706,10 @@ function TopicRow({
             transition={{ type: "spring", stiffness: 500, damping: 18 }}
             className={`relative rounded-full px-2.5 py-1 text-[11px] shadow-sm ring-1 transition-colors ${
               notesOpen
-                ? "bg-primary text-primary-foreground ring-primary"
+                ? "bg-foreground text-background ring-foreground"
                 : needsNote
-                  ? "bg-amber-100 text-amber-800 ring-amber-500/60 hover:bg-amber-200"
-                  : "bg-card text-muted-foreground ring-border/60 hover:bg-secondary"
+                  ? "bg-zinc-200 text-zinc-900 ring-zinc-400 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600"
+                  : "bg-card text-muted-foreground ring-border/60 hover:bg-secondary hover:text-foreground"
             }`}
             title={
               needsNote
@@ -746,11 +727,10 @@ function TopicRow({
             )}
           </motion.button>
 
-          {/* Right-side state: green check (truly complete) or ✓ button (still progressing) */}
+          {/* Right-side state: checkmark (truly complete) or ✓ button (still progressing) */}
           {topic.isComplete ? (
             <span
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white"
-              style={{ backgroundColor: subjectColor }}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-background"
             >
               <Check size={12} strokeWidth={3} />
             </span>
@@ -761,7 +741,7 @@ function TopicRow({
               whileHover={{ scale: 1.12, rotate: completeBlocked ? 0 : -8 }}
               whileTap={{ scale: 0.9 }}
               transition={{ type: "spring", stiffness: 500, damping: 14 }}
-              className="rounded-full bg-primary px-2.5 py-1 text-[11px] text-primary-foreground shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-60"
+              className="rounded-full bg-foreground px-2.5 py-1 text-[11px] text-background shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-60"
               title={completeBlocked ? "Upload a note first" : "Mark complete"}
             >
               <Check size={12} />
@@ -781,7 +761,7 @@ function TopicRow({
             className="mt-3 overflow-hidden border-t border-border pt-3"
           >
             {requiresNote && !hasNote && (
-              <p className="mb-2 rounded-xl bg-primary/10 px-3 py-2 text-[11px] text-primary">
+              <p className="mb-2 rounded-xl bg-muted px-3 py-2 text-[11px] font-medium text-foreground ring-1 ring-border/60">
                 Topic is longer than {NOTE_REQUIRED_MIN}m — upload a note to enable completion.
               </p>
             )}
@@ -794,7 +774,7 @@ function TopicRow({
               </ul>
             )}
 
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-card px-4 py-2 text-[12px] font-medium text-muted-foreground shadow-sm ring-1 ring-border/60 transition hover:bg-primary hover:text-primary-foreground hover:ring-primary">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-card px-4 py-2 text-[12px] font-medium text-foreground shadow-sm ring-1 ring-border/80 transition hover:bg-foreground hover:text-background hover:ring-foreground">
               <Upload size={12} />
               <span>{uploading ? "Uploading…" : "Upload note (PDF / image)"}</span>
               <input
@@ -820,12 +800,12 @@ function TopicRow({
 function NoteRow({ note, onDelete }: { note: ClientNote; onDelete: () => void }) {
   return (
     <li className="group flex items-center gap-2 rounded-xl bg-card px-3 py-2 text-[12px] ring-1 ring-border/60">
-      <Paperclip size={11} className="text-primary" />
+      <Paperclip size={11} className="text-foreground" />
       <a
         href={`/api/notes/${note._id}/file`}
         target="_blank"
         rel="noreferrer"
-        className="min-w-0 flex-1 truncate font-medium hover:text-primary hover:underline"
+        className="min-w-0 flex-1 truncate font-medium hover:underline"
       >
         {note.filename}
       </a>

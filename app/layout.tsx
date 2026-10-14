@@ -42,7 +42,7 @@ export default function RootLayout({
               <span>GATE DA</span>
             </Link>
             <NavTabs />
-            <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-primary">
+            <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border/60">
               4h a day
             </span>
           </nav>
