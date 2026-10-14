@@ -14,7 +14,7 @@ export const NOTE_REQUIRED_MIN = 20;
  * Everything else about the deadline is derived from it, so moving the target
  * is a one-line edit here.
  */
-export const DEADLINE_KEY = "2026-12-01";
+export const DEADLINE_KEY = "2026-12-10";
 
 export type ClientNote = {
   _id: string;
