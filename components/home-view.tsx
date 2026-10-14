@@ -43,16 +43,13 @@ import type {
 } from "@/lib/state-service";
 
 const SUBJECT_ICONS: Record<string, LucideIcon> = {
-  "Engineering Mathematics": Sigma,
-  "Quantitative Aptitude": Calculator,
-  Reasoning: Brain,
-  "Verbal Aptitude": BookOpen,
-  "Database Systems": Database,
-  "Data Structures": Network,
-  "Artificial Intelligence": Cpu,
-  Python: Code,
-  "Machine Learning": LineChart,
-  "Design and Analysis of Algorithms": Workflow,
+  CAL: Calculator,
+  "LA + POST": Sigma,
+  DSA: Network,
+  DBMS: Database,
+  ML: LineChart,
+  AI: Cpu,
+  APT: Brain,
 };
 
 function getSubjectIcon(name: string): LucideIcon {
