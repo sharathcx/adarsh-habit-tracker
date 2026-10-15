@@ -34,12 +34,17 @@ import { Heatmap } from "./heatmap";
 import { DayBoundaryRefresh } from "./day-boundary-refresh";
 import { formatDuration } from "@/lib/planner";
 import { compressImage } from "@/lib/compress-image";
+import { isGeneralAptitudeSubject } from "@/lib/aptitude";
+import { useAptitudeFilter } from "./aptitude-filter-context";
+import { AptitudeToggle } from "./aptitude-toggle";
+import { addDaysToKey, daysBetweenKeys } from "@/lib/day";
 import type {
   AppState,
   ClientSubject,
   ClientTopic,
   ClientSession,
   ClientNote,
+  HeatmapDay,
 } from "@/lib/state-service";
 
 const SUBJECT_ICONS: Record<string, LucideIcon> = {
@@ -84,6 +89,7 @@ function formatBytes(bytes: number): string {
 
 export function HomeView({ state }: Props) {
   const router = useRouter();
+  const { showAptitude, toggleAptitude } = useAptitudeFilter();
   const [pendingTopicId, setPendingTopicId] = useState<string | null>(null);
   const [uploadingTopicId, setUploadingTopicId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -91,6 +97,52 @@ export function HomeView({ state }: Props) {
   const [celebratedDay, setCelebratedDay] = useState<string | null>(
     state.todayMinutes >= state.dailyTarget ? state.todayKey : null,
   );
+
+  const displaySubjects = useMemo(() => {
+    return state.subjects.filter((s) => (showAptitude ? true : !isGeneralAptitudeSubject(s.name)));
+  }, [state.subjects, showAptitude]);
+
+  const stats = useMemo(() => {
+    const totalMin = displaySubjects.reduce((sum, s) => sum + s.totalMin, 0);
+    const doneMin = displaySubjects.reduce((sum, s) => sum + s.doneMin, 0);
+    const overallPercent = totalMin === 0 ? 0 : (doneMin / totalMin) * 100;
+    const remainingMin = Math.max(0, totalMin - doneMin);
+    const estDaysRemaining = Math.ceil(remainingMin / state.dailyTarget);
+
+    const daysToDeadline = Math.max(0, daysBetweenKeys(state.todayKey, state.deadlineKey) + 1);
+    const requiredDailyMin =
+      remainingMin > 0 && daysToDeadline > 0 ? Math.ceil(remainingMin / daysToDeadline) : null;
+
+    return {
+      totalMin,
+      doneMin,
+      overallPercent,
+      remainingMin,
+      estDaysRemaining,
+      deadlineKey: state.deadlineKey,
+      daysToDeadline,
+      requiredDailyMin,
+    };
+  }, [displaySubjects, state.dailyTarget, state.todayKey, state.deadlineKey]);
+
+  const displayHeatmapDays = useMemo(() => {
+    const pastAndToday = state.heatmapDays.filter((d) => !d.isFuture);
+    const futureDaysNeeded = Math.max(0, stats.estDaysRemaining);
+    const lastKey = state.todayKey;
+
+    const futureDays: HeatmapDay[] = [];
+    for (let i = 1; i <= futureDaysNeeded; i++) {
+      const key = addDaysToKey(lastKey, i);
+      futureDays.push({
+        date: key,
+        dayNumber: pastAndToday.length + i,
+        minutes: 0,
+        isToday: false,
+        isFuture: true,
+      });
+    }
+    return [...pastAndToday, ...futureDays];
+  }, [state.heatmapDays, state.todayKey, stats.estDaysRemaining]);
 
   const todayPercent = useMemo(
     () => Math.min(100, (state.todayMinutes / state.dailyTarget) * 100),
@@ -256,18 +308,28 @@ export function HomeView({ state }: Props) {
                   <span className="text-muted-foreground">day streak</span>
                 </StatChip>
                 <StatChip>
-                  <span className="tabular-nums">{state.estDaysRemaining}</span>
+                  <span className="tabular-nums">{stats.estDaysRemaining}</span>
                   <span className="text-muted-foreground">days needed</span>
                 </StatChip>
                 <StatChip>
-                  <span className="tabular-nums">{state.overallPercent.toFixed(1)}%</span>
-                  <span className="text-muted-foreground">syllabus</span>
+                  <span className="tabular-nums">{stats.overallPercent.toFixed(1)}%</span>
+                  <span className="text-muted-foreground">
+                    {showAptitude ? "syllabus" : "technicals"}
+                  </span>
                 </StatChip>
               </div>
             </div>
           </section>
 
-          <DeadlineCard state={state} />
+          <DeadlineCard
+            dailyTarget={state.dailyTarget}
+            deadlineKey={stats.deadlineKey}
+            remainingMin={stats.remainingMin}
+            daysToDeadline={stats.daysToDeadline}
+            estDaysRemaining={stats.estDaysRemaining}
+            requiredDailyMin={stats.requiredDailyMin}
+            showAptitude={showAptitude}
+          />
 
           {state.todaySessions.length > 0 && (
             <section className="shrink-0 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
@@ -291,22 +353,30 @@ export function HomeView({ state }: Props) {
           )}
 
           <section className="shrink-0 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
-            <Heatmap days={state.heatmapDays} dailyTarget={state.dailyTarget} />
+            <Heatmap days={displayHeatmapDays} dailyTarget={state.dailyTarget} />
           </section>
         </aside>
 
         {/* Right column — subjects (scrollable) */}
         <section className="scrollbar-hide flex flex-1 flex-col gap-3 lg:basis-[56%] lg:overflow-y-auto lg:pb-2">
-          <div className="sticky top-0 z-10 flex items-baseline justify-between bg-background/95 px-1 py-2 backdrop-blur">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Subjects
-            </h2>
-            <span className="tabular-nums text-xs text-muted-foreground">
-              {formatDuration(state.doneMin)} of {formatDuration(state.totalMin)}
-            </span>
+          <div className="sticky top-0 z-10 flex items-center justify-between bg-background/95 px-1 py-2 backdrop-blur">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                {showAptitude ? "All Subjects" : "Technical Subjects"}
+              </h2>
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground ring-1 ring-border/40">
+                {displaySubjects.length} subjects
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <AptitudeToggle compact />
+              <span className="tabular-nums text-xs text-muted-foreground">
+                {formatDuration(stats.doneMin)} of {formatDuration(stats.totalMin)}
+              </span>
+            </div>
           </div>
 
-          {state.subjects.map((subject) => (
+          {displaySubjects.map((subject) => (
             <SubjectSection
               key={subject._id}
               subject={subject}
@@ -317,6 +387,27 @@ export function HomeView({ state }: Props) {
               onDeleteNote={deleteNote}
             />
           ))}
+
+          {!showAptitude && (
+            <div className="flex items-center justify-between rounded-2xl border border-dashed border-border/80 bg-muted/20 p-4 text-xs text-muted-foreground transition hover:bg-muted/40">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground ring-1 ring-border/60">
+                  <Brain size={16} />
+                </div>
+                <div>
+                  <div className="font-medium text-foreground">General Aptitude (GA) is excluded</div>
+                  <div className="text-[11px] text-muted-foreground">Hours are omitted from total calculations</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={toggleAptitude}
+                className="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-foreground shadow-sm ring-1 ring-border/80 hover:bg-secondary/80 transition"
+              >
+                Include GA
+              </button>
+            </div>
+          )}
         </section>
       </div>
 
@@ -339,14 +430,32 @@ function formatDeadline(key: string): string {
   });
 }
 
+type DeadlineCardProps = {
+  dailyTarget: number;
+  deadlineKey: string;
+  remainingMin: number;
+  daysToDeadline: number;
+  estDaysRemaining: number;
+  requiredDailyMin: number | null;
+  showAptitude: boolean;
+};
+
 /**
  * The two numbers that decide whether the plan holds: days of work still in the
  * syllabus at the daily target, against days actually left on the calendar.
  */
-function DeadlineCard({ state }: { state: AppState }) {
-  const remainingMin = Math.max(0, state.totalMin - state.doneMin);
-  const buffer = state.daysToDeadline - state.estDaysRemaining;
-  const label = formatDeadline(state.deadlineKey);
+function DeadlineCard({
+  dailyTarget,
+  deadlineKey,
+  remainingMin,
+  daysToDeadline,
+  estDaysRemaining,
+  requiredDailyMin,
+  showAptitude,
+}: DeadlineCardProps) {
+  const buffer = daysToDeadline - estDaysRemaining;
+  const label = formatDeadline(deadlineKey);
+  const scopeLabel = showAptitude ? "Syllabus" : "Technicals";
 
   let tone: string;
   let icon: React.ReactNode;
@@ -355,24 +464,24 @@ function DeadlineCard({ state }: { state: AppState }) {
   if (remainingMin === 0) {
     tone = "bg-secondary text-foreground ring-border/80";
     icon = <Check size={13} className="mt-px shrink-0 text-foreground" strokeWidth={3} />;
-    verdict = `Syllabus finished, ${state.daysToDeadline} days ahead of ${label}.`;
-  } else if (state.daysToDeadline === 0) {
+    verdict = `${scopeLabel} finished, ${daysToDeadline} days ahead of ${label}.`;
+  } else if (daysToDeadline === 0) {
     tone = "bg-secondary text-foreground ring-border/80";
     icon = <TriangleAlert size={13} className="mt-px shrink-0 text-foreground" />;
-    verdict = `${label} has passed — ${state.estDaysRemaining} more days at ${formatDuration(state.dailyTarget)}/day to finish.`;
+    verdict = `${label} has passed — ${estDaysRemaining} more days at ${formatDuration(dailyTarget)}/day to finish.`;
   } else if (buffer > 0) {
     tone = "bg-secondary text-foreground ring-border/80";
     icon = <Check size={13} className="mt-px shrink-0 text-foreground" strokeWidth={3} />;
-    verdict = `On track — ${buffer} ${buffer === 1 ? "day" : "days"} of buffer at ${formatDuration(state.dailyTarget)}/day.`;
+    verdict = `On track — ${buffer} ${buffer === 1 ? "day" : "days"} of buffer at ${formatDuration(dailyTarget)}/day.`;
   } else if (buffer === 0) {
     tone = "bg-secondary text-foreground ring-border/80";
     icon = <CalendarClock size={13} className="mt-px shrink-0 text-foreground" />;
-    verdict = `Exactly on pace — every day up to ${label} has to hit ${formatDuration(state.dailyTarget)}.`;
+    verdict = `Exactly on pace — every day up to ${label} has to hit ${formatDuration(dailyTarget)}.`;
   } else {
     tone = "bg-secondary text-foreground ring-border/80";
     icon = <TriangleAlert size={13} className="mt-px shrink-0 text-foreground" />;
     verdict = `${-buffer} ${buffer === -1 ? "day" : "days"} short — needs ${formatDuration(
-      state.requiredDailyMin ?? state.dailyTarget,
+      requiredDailyMin ?? dailyTarget,
     )}/day to make ${label}.`;
   }
 
@@ -380,7 +489,7 @@ function DeadlineCard({ state }: { state: AppState }) {
     <section className="shrink-0 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Finish by {label}
+          Finish {scopeLabel} by {label}
         </h2>
         <span className="tabular-nums text-xs text-muted-foreground">
           {formatDuration(remainingMin)} left
@@ -389,13 +498,13 @@ function DeadlineCard({ state }: { state: AppState }) {
 
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-2xl bg-secondary/60 px-3 py-2.5">
-          <div className="text-xl font-semibold tabular-nums">{state.estDaysRemaining}</div>
+          <div className="text-xl font-semibold tabular-nums">{estDaysRemaining}</div>
           <div className="text-[11px] leading-tight text-muted-foreground">
-            days needed at {formatDuration(state.dailyTarget)}/day
+            days needed at {formatDuration(dailyTarget)}/day
           </div>
         </div>
         <div className="rounded-2xl bg-secondary/60 px-3 py-2.5">
-          <div className="text-xl font-semibold tabular-nums">{state.daysToDeadline}</div>
+          <div className="text-xl font-semibold tabular-nums">{daysToDeadline}</div>
           <div className="text-[11px] leading-tight text-muted-foreground">
             days left until {label}
           </div>

@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 import { Repeat, Check } from "lucide-react";
 import { studyDayKey, daysBetweenKeys } from "@/lib/day";
 import { DayBoundaryRefresh } from "./day-boundary-refresh";
+import { isGeneralAptitudeSubject } from "@/lib/aptitude";
+import { useAptitudeFilter } from "./aptitude-filter-context";
+import { AptitudeToggle } from "./aptitude-toggle";
 import type { AppState, ClientTopic } from "@/lib/state-service";
 
 type Props = { state: AppState };
@@ -21,6 +24,7 @@ function formatRelative(iso: string, todayKey: string): string {
 
 export function RevisionView({ state }: Props) {
   const router = useRouter();
+  const { showAptitude } = useAptitudeFilter();
   const [pendingRevisionId, setPendingRevisionId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
@@ -52,7 +56,11 @@ export function RevisionView({ state }: Props) {
     });
   };
 
-  const groups = state.subjects
+  const filteredSubjects = state.subjects.filter((s) =>
+    showAptitude ? true : !isGeneralAptitudeSubject(s.name),
+  );
+
+  const groups = filteredSubjects
     .map((s) => ({ subject: s, topics: s.topics.filter((t) => t.isComplete) }))
     .filter((g) => g.topics.length > 0);
 
@@ -92,7 +100,8 @@ export function RevisionView({ state }: Props) {
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <AptitudeToggle compact />
             <StatChip value={completedCount} label="completed" />
             <StatChip value={totalRevisions} label="revisions" />
             <StatChip value={notRevised} label="not yet revised" />
