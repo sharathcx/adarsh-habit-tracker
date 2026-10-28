@@ -24,7 +24,7 @@ export function AptitudeToggle({ compact = false, className = "" }: Props) {
       title={
         showAptitude
           ? "General Aptitude (GA) is included in total hours. Click to exclude and focus on Technicals."
-          : "General Aptitude (GA) is excluded from total hours. Click to include GA."
+          : "General Aptitude (GA) is excluded from total hours (starts after Technicals from Dec 16). Click to include GA."
       }
     >
       <div className="flex items-center gap-1.5">

@@ -6,15 +6,19 @@ import { studyDayKey, addDaysToKey, daysBetweenKeys } from "@/lib/day";
 import { seedDatabase } from "@/lib/seed";
 
 
-export const DAILY_TARGET_MIN = 360;
+export const DAILY_TARGET_MIN = 420;
 export const NOTE_REQUIRED_MIN = 20;
 
 /**
- * The date the syllabus is meant to be finished by, as a study-day key.
- * Everything else about the deadline is derived from it, so moving the target
- * is a one-line edit here.
+ * The journey start date (Day 1). Technicals alone are studied from this date.
  */
-export const DEADLINE_KEY = "2026-12-10";
+export const START_KEY = "2026-10-27";
+
+/**
+ * The date technicals are meant to be finished by, as a study-day key.
+ * General Aptitude starts after this date.
+ */
+export const DEADLINE_KEY = "2026-12-15";
 
 export type ClientNote = {
   _id: string;
@@ -79,6 +83,8 @@ export type AppState = {
   /** `YYYY-MM-DD` of the study day this state was built for (rolls at 7am IST). */
   todayKey: string;
   estDaysRemaining: number;
+  /** `YYYY-MM-DD` the journey started (Day 1). */
+  startKey: string;
   /** `YYYY-MM-DD` the syllabus is meant to be finished by. */
   deadlineKey: string;
   /** Study days from today through the deadline, inclusive. 0 once it passes. */
@@ -148,7 +154,12 @@ export async function getAppState(): Promise<AppState> {
   const minutesByDate = new Map<string, number>();
   const todayKey = studyDayKey(new Date());
 
-  for (const s of sessions) {
+  // Only sessions from START_KEY onwards count toward this study journey
+  const activeSessions = sessions.filter(
+    (s) => studyDayKey(s.completedAt) >= START_KEY,
+  );
+
+  for (const s of activeSessions) {
     const tKey = String(s.topicId);
     minutesByTopic.set(tKey, (minutesByTopic.get(tKey) ?? 0) + s.minutes);
     const dKey = studyDayKey(s.completedAt);
@@ -216,7 +227,7 @@ export async function getAppState(): Promise<AppState> {
     }
   }
 
-  const todaySessions: ClientSession[] = sessions
+  const todaySessions: ClientSession[] = activeSessions
     .filter((s) => studyDayKey(s.completedAt) === todayKey)
     .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
     .map((s) => {
@@ -238,7 +249,8 @@ export async function getAppState(): Promise<AppState> {
   let cursorKey = todayKey;
   let isFirstIter = true;
   while (true) {
-    const targetForDate = cursorKey < todayKey ? 240 : DAILY_TARGET_MIN;
+    if (cursorKey < START_KEY) break;
+    const targetForDate = DAILY_TARGET_MIN;
     const mins = minutesByDate.get(cursorKey) ?? 0;
     if (mins >= targetForDate) {
       streak++;
@@ -265,13 +277,8 @@ export async function getAppState(): Promise<AppState> {
   const requiredDailyMin =
     remainingMin > 0 && daysToDeadline > 0 ? Math.ceil(remainingMin / daysToDeadline) : null;
 
-  // Day 1 is anchored to the user's earliest study day. If they haven't
-  // logged anything yet, Day 1 starts today. This keeps past days in view
-  // as the journey progresses.
-  const earliestKey = [...minutesByDate.keys()].sort()[0];
-  const journeyStartKey =
-    earliestKey && earliestKey < todayKey ? earliestKey : todayKey;
-
+  // Day 1 starts on START_KEY ("2026-10-27") for technicals
+  const journeyStartKey = START_KEY;
   const daysPassedBeforeToday = Math.max(0, daysBetweenKeys(journeyStartKey, todayKey));
 
   // Dynamic total journey days: past days elapsed + remaining days needed.
@@ -302,6 +309,7 @@ export async function getAppState(): Promise<AppState> {
     dailyTarget: DAILY_TARGET_MIN,
     todayKey,
     estDaysRemaining,
+    startKey: START_KEY,
     deadlineKey: DEADLINE_KEY,
     daysToDeadline,
     requiredDailyMin,

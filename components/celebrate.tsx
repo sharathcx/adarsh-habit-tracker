@@ -59,7 +59,7 @@ export function Celebrate({ show, dayNumber, onDismiss }: Props) {
             </div>
             <div className="mt-3 text-4xl font-semibold tracking-tight">Day complete.</div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Four hours down. The streak grows. See you tomorrow.
+              Seven hours down. The streak grows. See you tomorrow.
             </p>
             <button
               onClick={onDismiss}

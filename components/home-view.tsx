@@ -109,7 +109,19 @@ export function HomeView({ state }: Props) {
     const remainingMin = Math.max(0, totalMin - doneMin);
     const estDaysRemaining = Math.ceil(remainingMin / state.dailyTarget);
 
-    const daysToDeadline = Math.max(0, daysBetweenKeys(state.todayKey, state.deadlineKey) + 1);
+    // If GA is included (showAptitude = true), GA is scheduled to start after technicals finish on Dec 15
+    const effectiveDeadlineKey = showAptitude
+      ? (() => {
+          const gaSubjects = state.subjects.filter((s) => isGeneralAptitudeSubject(s.name));
+          const gaTotalMin = gaSubjects.reduce((sum, s) => sum + s.totalMin, 0);
+          const gaDoneMin = gaSubjects.reduce((sum, s) => sum + s.doneMin, 0);
+          const gaRemainingMin = Math.max(0, gaTotalMin - gaDoneMin);
+          const gaDays = Math.ceil(gaRemainingMin / state.dailyTarget);
+          return addDaysToKey(state.deadlineKey, gaDays);
+        })()
+      : state.deadlineKey;
+
+    const daysToDeadline = Math.max(0, daysBetweenKeys(state.todayKey, effectiveDeadlineKey) + 1);
     const requiredDailyMin =
       remainingMin > 0 && daysToDeadline > 0 ? Math.ceil(remainingMin / daysToDeadline) : null;
 
@@ -119,11 +131,11 @@ export function HomeView({ state }: Props) {
       overallPercent,
       remainingMin,
       estDaysRemaining,
-      deadlineKey: state.deadlineKey,
+      deadlineKey: effectiveDeadlineKey,
       daysToDeadline,
       requiredDailyMin,
     };
-  }, [displaySubjects, state.dailyTarget, state.todayKey, state.deadlineKey]);
+  }, [displaySubjects, state.subjects, state.dailyTarget, state.todayKey, state.deadlineKey, showAptitude]);
 
   const displayHeatmapDays = useMemo(() => {
     const pastAndToday = state.heatmapDays.filter((d) => !d.isFuture);
@@ -299,7 +311,7 @@ export function HomeView({ state }: Props) {
                 <p className="text-sm text-muted-foreground">
                   {hitTarget
                     ? "Daily target hit. Carry the streak into tomorrow."
-                    : "Eat your 6 hours of lectures."}
+                    : "Eat your 7 hours of lectures."}
                 </p>
               </div>
               <div className="flex flex-wrap justify-center gap-2">
@@ -396,7 +408,7 @@ export function HomeView({ state }: Props) {
                 </div>
                 <div>
                   <div className="font-medium text-foreground">General Aptitude (GA) is excluded</div>
-                  <div className="text-[11px] text-muted-foreground">Hours are omitted from total calculations</div>
+                  <div className="text-[11px] text-muted-foreground">Starts after Technicals (from Dec 16) · Omitted from current calculations</div>
                 </div>
               </div>
               <button
@@ -488,9 +500,16 @@ function DeadlineCard({
   return (
     <section className="shrink-0 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Finish {scopeLabel} by {label}
-        </h2>
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Finish {scopeLabel} by {label}
+          </h2>
+          <p className="text-[11px] text-muted-foreground/80">
+            {showAptitude
+              ? "Technicals by Dec 15 + General Aptitude after"
+              : "General Aptitude starts after Dec 15"}
+          </p>
+        </div>
         <span className="tabular-nums text-xs text-muted-foreground">
           {formatDuration(remainingMin)} left
         </span>

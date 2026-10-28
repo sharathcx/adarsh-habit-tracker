@@ -82,7 +82,7 @@ export function Heatmap({ days, dailyTarget }: Props) {
           <span className="h-2.5 w-2.5 rounded-[2px] bg-zinc-500 dark:bg-zinc-500" />
           <span className="h-2.5 w-2.5 rounded-[2px] bg-zinc-700 dark:bg-zinc-300" />
           <span className="h-2.5 w-2.5 rounded-[2px] bg-black dark:bg-white" />
-          <span>6h+</span>
+          <span>7h+</span>
         </div>
       </div>
     </div>

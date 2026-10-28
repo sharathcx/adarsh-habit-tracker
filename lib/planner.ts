@@ -24,7 +24,7 @@ export type PlannedDay = {
   totalMinutes: number;
 };
 
-export const DAILY_TARGET_MIN = 360;
+export const DAILY_TARGET_MIN = 420;
 const OVERFLOW_TOLERANCE = 15;
 
 export function generatePlan(

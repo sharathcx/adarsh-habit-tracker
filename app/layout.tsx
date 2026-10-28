@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "GATE DA — Daily Plan",
-  description: "6 hours a day. One syllabus.",
+  description: "7 hours a day. One syllabus.",
 };
 
 export default function RootLayout({
@@ -49,7 +49,7 @@ export default function RootLayout({
                 <AptitudeToggle />
               </div>
               <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border/60 hidden md:inline-flex">
-                6h a day
+                7h a day
               </span>
             </nav>
           </header>
