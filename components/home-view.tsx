@@ -139,7 +139,10 @@ export function HomeView({ state }: Props) {
 
   const displayHeatmapDays = useMemo(() => {
     const pastAndToday = state.heatmapDays.filter((d) => !d.isFuture);
-    const futureDaysNeeded = Math.max(0, stats.estDaysRemaining);
+    const todayComplete = state.todayMinutes >= state.dailyTarget;
+    // estDaysRemaining includes today if today's target is not yet completed.
+    // Since pastAndToday already includes today, future days strictly after today is:
+    const futureDaysNeeded = Math.max(0, stats.estDaysRemaining - (todayComplete ? 0 : 1));
     const lastKey = state.todayKey;
 
     const futureDays: HeatmapDay[] = [];
@@ -154,7 +157,7 @@ export function HomeView({ state }: Props) {
       });
     }
     return [...pastAndToday, ...futureDays];
-  }, [state.heatmapDays, state.todayKey, stats.estDaysRemaining]);
+  }, [state.heatmapDays, state.todayKey, state.todayMinutes, state.dailyTarget, stats.estDaysRemaining]);
 
   const todayPercent = useMemo(
     () => Math.min(100, (state.todayMinutes / state.dailyTarget) * 100),
