@@ -12,13 +12,13 @@ export const NOTE_REQUIRED_MIN = 20;
 /**
  * The journey start date (Day 1). Technicals alone are studied from this date.
  */
-export const START_KEY = "2026-10-27";
+export const START_KEY = "2026-11-01";
 
 /**
  * The date technicals are meant to be finished by, as a study-day key.
  * General Aptitude starts after this date.
  */
-export const DEADLINE_KEY = "2026-12-15";
+export const DEADLINE_KEY = "2026-12-20";
 
 export type ClientNote = {
   _id: string;
@@ -277,7 +277,7 @@ export async function getAppState(): Promise<AppState> {
   const requiredDailyMin =
     remainingMin > 0 && daysToDeadline > 0 ? Math.ceil(remainingMin / daysToDeadline) : null;
 
-  // Day 1 starts on START_KEY ("2026-10-27") for technicals
+  // Day 1 starts on START_KEY ("2026-11-01") for technicals
   const journeyStartKey = START_KEY;
   const daysPassedBeforeToday = Math.max(0, daysBetweenKeys(journeyStartKey, todayKey));
 

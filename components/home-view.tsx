@@ -109,7 +109,7 @@ export function HomeView({ state }: Props) {
     const remainingMin = Math.max(0, totalMin - doneMin);
     const estDaysRemaining = Math.ceil(remainingMin / state.dailyTarget);
 
-    // If GA is included (showAptitude = true), GA is scheduled to start after technicals finish on Dec 15
+    // If GA is included, it starts after technicals finish on the deadline.
     const effectiveDeadlineKey = showAptitude
       ? (() => {
           const gaSubjects = state.subjects.filter((s) => isGeneralAptitudeSubject(s.name));
@@ -339,6 +339,7 @@ export function HomeView({ state }: Props) {
           <DeadlineCard
             dailyTarget={state.dailyTarget}
             deadlineKey={stats.deadlineKey}
+            technicalDeadlineKey={state.deadlineKey}
             remainingMin={stats.remainingMin}
             daysToDeadline={stats.daysToDeadline}
             estDaysRemaining={stats.estDaysRemaining}
@@ -411,7 +412,7 @@ export function HomeView({ state }: Props) {
                 </div>
                 <div>
                   <div className="font-medium text-foreground">General Aptitude (GA) is excluded</div>
-                  <div className="text-[11px] text-muted-foreground">Starts after Technicals (from Dec 16) · Omitted from current calculations</div>
+                  <div className="text-[11px] text-muted-foreground">Starts after Technicals (from {formatDeadline(addDaysToKey(state.deadlineKey, 1))}) · Omitted from current calculations</div>
                 </div>
               </div>
               <button
@@ -448,6 +449,7 @@ function formatDeadline(key: string): string {
 type DeadlineCardProps = {
   dailyTarget: number;
   deadlineKey: string;
+  technicalDeadlineKey: string;
   remainingMin: number;
   daysToDeadline: number;
   estDaysRemaining: number;
@@ -462,6 +464,7 @@ type DeadlineCardProps = {
 function DeadlineCard({
   dailyTarget,
   deadlineKey,
+  technicalDeadlineKey,
   remainingMin,
   daysToDeadline,
   estDaysRemaining,
@@ -470,6 +473,7 @@ function DeadlineCard({
 }: DeadlineCardProps) {
   const buffer = daysToDeadline - estDaysRemaining;
   const label = formatDeadline(deadlineKey);
+  const technicalDeadlineLabel = formatDeadline(technicalDeadlineKey);
   const scopeLabel = showAptitude ? "Syllabus" : "Technicals";
 
   let tone: string;
@@ -509,8 +513,8 @@ function DeadlineCard({
           </h2>
           <p className="text-[11px] text-muted-foreground/80">
             {showAptitude
-              ? "Technicals by Dec 15 + General Aptitude after"
-              : "General Aptitude starts after Dec 15"}
+              ? `Technicals by ${technicalDeadlineLabel} + General Aptitude after`
+              : `General Aptitude starts after ${technicalDeadlineLabel}`}
           </p>
         </div>
         <span className="tabular-nums text-xs text-muted-foreground">
