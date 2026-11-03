@@ -79,7 +79,7 @@ const NEW_DATA = [
     name: "AI",
     order: 6,
     color: "#27272a",
-    topics: [{ name: "AI", durationMin: h(39, 30) }],
+    topics: [{ name: "AI total", durationMin: 17 * 60 + 39 + 24 / 60 }],
   },
   {
     name: "APT",
@@ -88,6 +88,14 @@ const NEW_DATA = [
     topics: [{ name: "APT", durationMin: h(132, 2) }],
   },
 ];
+
+const fmt = (min) => {
+  const totalSeconds = Math.round(min * 60);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return [h && `${h}h`, m && `${m}m`, s && `${s}s`].filter(Boolean).join(" ") || "0m";
+};
 
 let totalMinutes = 0;
 let totalTopics = 0;
@@ -120,15 +128,11 @@ for (const item of NEW_DATA) {
     totalTopics++;
   }
 
-  const hours = Math.floor(item.topics[0].durationMin / 60);
-  const mins = item.topics[0].durationMin % 60;
-  console.log(`✓ Added Subject: ${item.name.padEnd(12)} -> ${hours}h ${mins ? mins + 'm' : ''}`);
+  console.log(`✓ Added Subject: ${item.name.padEnd(12)} -> ${fmt(item.topics[0].durationMin)}`);
 }
 
-const totalHours = Math.floor(totalMinutes / 60);
-const remainingMins = totalMinutes % 60;
 console.log(`\nSuccessfully uploaded all 7 subjects and ${totalTopics} topics into [${dbName}]:`);
-console.log(`Total duration: ${totalHours}h ${remainingMins}m (${totalMinutes} minutes)`);
+console.log(`Total duration: ${fmt(totalMinutes)}`);
 
 await mongoose.disconnect();
 process.exit(0);

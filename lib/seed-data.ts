@@ -42,7 +42,7 @@ export const SEED_SUBJECTS: SeedSubject[] = [
     name: "AI",
     order: 6,
     color: "#27272a",
-    topics: [{ name: "AI", durationMin: h(39, 30) }],
+    topics: [{ name: "AI total", durationMin: 17 * 60 + 39 + 24 / 60 }],
   },
   {
     name: "APT",

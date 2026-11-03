@@ -605,6 +605,7 @@ function SubjectSection({
 }: SubjectSectionProps) {
   const [expanded, setExpanded] = useState(false);
   const remainingTopics = subject.topics.filter((t) => !t.isComplete).length;
+  const isAiTotal = subject.name === "AI" && subject.topics.length === 1;
   const Icon = getSubjectIcon(subject.name);
 
   return (
@@ -646,7 +647,7 @@ function SubjectSection({
           <div className="min-w-0">
             <h3 className="truncate text-[15px] font-semibold tracking-tight">{subject.name}</h3>
             <div className="mt-0.5 text-[11px] text-muted-foreground">
-              {remainingTopics} {remainingTopics === 1 ? "topic" : "topics"} ·{" "}
+              {isAiTotal ? "Total: " : `${remainingTopics} ${remainingTopics === 1 ? "topic" : "topics"} · `}
               {formatDuration(subject.totalMin)}
             </div>
           </div>

@@ -35,9 +35,11 @@ function parseDuration(raw) {
 }
 
 const fmt = (min) => {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
+  const totalSeconds = Math.round(min * 60);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return [h && `${h}h`, m && `${m}m`, s && `${s}s`].filter(Boolean).join(" ") || "0m";
 };
 
 await mongoose.connect(uri, { bufferCommands: false });
