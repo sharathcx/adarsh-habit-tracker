@@ -18,7 +18,7 @@ export const START_KEY = "2026-11-01";
  * The date technicals are meant to be finished by, as a study-day key.
  * General Aptitude starts after this date.
  */
-export const DEADLINE_KEY = "2026-12-20";
+export const DEADLINE_KEY = "2026-12-25";
 
 export type ClientNote = {
   _id: string;
