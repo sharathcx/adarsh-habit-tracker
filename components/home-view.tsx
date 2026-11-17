@@ -37,6 +37,9 @@ import { compressImage } from "@/lib/compress-image";
 import { isGeneralAptitudeSubject } from "@/lib/aptitude";
 import { useAptitudeFilter } from "./aptitude-filter-context";
 import { AptitudeToggle } from "./aptitude-toggle";
+import { isDsaSubject } from "@/lib/dsa";
+import { useDsaFilter } from "./dsa-filter-context";
+import { DsaToggle } from "./dsa-toggle";
 import { addDaysToKey, daysBetweenKeys } from "@/lib/day";
 import type {
   AppState,
@@ -90,6 +93,7 @@ function formatBytes(bytes: number): string {
 export function HomeView({ state }: Props) {
   const router = useRouter();
   const { showAptitude, toggleAptitude } = useAptitudeFilter();
+  const { showDsa, toggleDsa } = useDsaFilter();
   const [pendingTopicId, setPendingTopicId] = useState<string | null>(null);
   const [uploadingTopicId, setUploadingTopicId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -99,8 +103,12 @@ export function HomeView({ state }: Props) {
   );
 
   const displaySubjects = useMemo(() => {
-    return state.subjects.filter((s) => (showAptitude ? true : !isGeneralAptitudeSubject(s.name)));
-  }, [state.subjects, showAptitude]);
+    return state.subjects.filter(
+      (s) =>
+        (showAptitude || !isGeneralAptitudeSubject(s.name)) &&
+        (showDsa || !isDsaSubject(s.name)),
+    );
+  }, [state.subjects, showAptitude, showDsa]);
 
   const stats = useMemo(() => {
     const totalMin = displaySubjects.reduce((sum, s) => sum + s.totalMin, 0);
@@ -329,7 +337,7 @@ export function HomeView({ state }: Props) {
                 <StatChip>
                   <span className="tabular-nums">{stats.overallPercent.toFixed(1)}%</span>
                   <span className="text-muted-foreground">
-                    {showAptitude ? "syllabus" : "technicals"}
+                    {!showDsa ? "selected subjects" : showAptitude ? "syllabus" : "technicals"}
                   </span>
                 </StatChip>
               </div>
@@ -345,6 +353,7 @@ export function HomeView({ state }: Props) {
             estDaysRemaining={stats.estDaysRemaining}
             requiredDailyMin={stats.requiredDailyMin}
             showAptitude={showAptitude}
+            showDsa={showDsa}
           />
 
           {state.todaySessions.length > 0 && (
@@ -375,17 +384,18 @@ export function HomeView({ state }: Props) {
 
         {/* Right column — subjects (scrollable) */}
         <section className="scrollbar-hide flex flex-1 flex-col gap-3 lg:basis-[56%] lg:overflow-y-auto lg:pb-2">
-          <div className="sticky top-0 z-10 flex items-center justify-between bg-background/95 px-1 py-2 backdrop-blur">
+          <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 bg-background/95 px-1 py-2 backdrop-blur">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                {showAptitude ? "All Subjects" : "Technical Subjects"}
+                {!showDsa ? "Selected Subjects" : showAptitude ? "All Subjects" : "Technical Subjects"}
               </h2>
               <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground ring-1 ring-border/40">
                 {displaySubjects.length} subjects
               </span>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5">
               <AptitudeToggle compact />
+              <DsaToggle />
               <span className="tabular-nums text-xs text-muted-foreground">
                 {formatDuration(stats.doneMin)} of {formatDuration(stats.totalMin)}
               </span>
@@ -403,6 +413,27 @@ export function HomeView({ state }: Props) {
               onDeleteNote={deleteNote}
             />
           ))}
+
+          {!showDsa && (
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-border/80 bg-muted/20 p-4 text-xs text-muted-foreground transition hover:bg-muted/40">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground ring-1 ring-border/60">
+                  <Network size={16} />
+                </div>
+                <div>
+                  <div className="font-medium text-foreground">DSA is excluded</div>
+                  <div className="text-[11px] text-muted-foreground">Omitted from current calculations</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={toggleDsa}
+                className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-foreground shadow-sm ring-1 ring-border/80 hover:bg-secondary/80 transition"
+              >
+                Include DSA
+              </button>
+            </div>
+          )}
 
           {!showAptitude && (
             <div className="flex items-center justify-between rounded-2xl border border-dashed border-border/80 bg-muted/20 p-4 text-xs text-muted-foreground transition hover:bg-muted/40">
@@ -455,6 +486,7 @@ type DeadlineCardProps = {
   estDaysRemaining: number;
   requiredDailyMin: number | null;
   showAptitude: boolean;
+  showDsa: boolean;
 };
 
 /**
@@ -470,11 +502,12 @@ function DeadlineCard({
   estDaysRemaining,
   requiredDailyMin,
   showAptitude,
+  showDsa,
 }: DeadlineCardProps) {
   const buffer = daysToDeadline - estDaysRemaining;
   const label = formatDeadline(deadlineKey);
   const technicalDeadlineLabel = formatDeadline(technicalDeadlineKey);
-  const scopeLabel = showAptitude ? "Syllabus" : "Technicals";
+  const scopeLabel = !showDsa ? "Selected Subjects" : showAptitude ? "Syllabus" : "Technicals";
 
   let tone: string;
   let icon: React.ReactNode;

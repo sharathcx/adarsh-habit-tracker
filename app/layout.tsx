@@ -5,6 +5,8 @@ import "./globals.css";
 import { NavTabs } from "@/components/nav-tabs";
 import { AptitudeFilterProvider } from "@/components/aptitude-filter-context";
 import { AptitudeToggle } from "@/components/aptitude-toggle";
+import { DsaFilterProvider } from "@/components/dsa-filter-context";
+import { DsaToggle } from "@/components/dsa-toggle";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -44,28 +46,31 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground lg:h-screen lg:overflow-hidden">
         <ThemeProvider>
           <AptitudeFilterProvider>
-            <header className="shrink-0">
-              <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5 text-sm gap-2">
-                <Link
-                  href="/"
-                  className="inline-flex items-center gap-2 font-semibold tracking-tight shrink-0"
-                >
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-black text-white dark:bg-white dark:text-black text-[11px] font-bold">
-                    GD
+            <DsaFilterProvider>
+              <header className="shrink-0">
+                <nav className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between px-4 py-5 text-sm gap-2 sm:px-6">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 font-semibold tracking-tight shrink-0"
+                  >
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-black text-white dark:bg-white dark:text-black text-[11px] font-bold">
+                      GD
+                    </span>
+                    <span className="hidden sm:inline">GATE DA</span>
+                  </Link>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <NavTabs />
+                    <AptitudeToggle />
+                    <DsaToggle />
+                    <ThemeToggle />
+                  </div>
+                  <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border/60 hidden md:inline-flex">
+                    7h a day
                   </span>
-                  <span className="hidden sm:inline">GATE DA</span>
-                </Link>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <NavTabs />
-                  <AptitudeToggle />
-                  <ThemeToggle />
-                </div>
-                <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border/60 hidden md:inline-flex">
-                  7h a day
-                </span>
-              </nav>
-            </header>
-            <main className="flex-1 lg:min-h-0">{children}</main>
+                </nav>
+              </header>
+              <main className="flex-1 lg:min-h-0">{children}</main>
+            </DsaFilterProvider>
           </AptitudeFilterProvider>
         </ThemeProvider>
       </body>

@@ -9,6 +9,9 @@ import { DayBoundaryRefresh } from "./day-boundary-refresh";
 import { isGeneralAptitudeSubject } from "@/lib/aptitude";
 import { useAptitudeFilter } from "./aptitude-filter-context";
 import { AptitudeToggle } from "./aptitude-toggle";
+import { isDsaSubject } from "@/lib/dsa";
+import { useDsaFilter } from "./dsa-filter-context";
+import { DsaToggle } from "./dsa-toggle";
 import type { AppState, ClientTopic } from "@/lib/state-service";
 
 type Props = { state: AppState };
@@ -25,6 +28,7 @@ function formatRelative(iso: string, todayKey: string): string {
 export function RevisionView({ state }: Props) {
   const router = useRouter();
   const { showAptitude } = useAptitudeFilter();
+  const { showDsa } = useDsaFilter();
   const [pendingRevisionId, setPendingRevisionId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
@@ -56,8 +60,10 @@ export function RevisionView({ state }: Props) {
     });
   };
 
-  const filteredSubjects = state.subjects.filter((s) =>
-    showAptitude ? true : !isGeneralAptitudeSubject(s.name),
+  const filteredSubjects = state.subjects.filter(
+    (s) =>
+      (showAptitude || !isGeneralAptitudeSubject(s.name)) &&
+      (showDsa || !isDsaSubject(s.name)),
   );
 
   const groups = filteredSubjects
@@ -102,6 +108,7 @@ export function RevisionView({ state }: Props) {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <AptitudeToggle compact />
+            <DsaToggle />
             <StatChip value={completedCount} label="completed" />
             <StatChip value={totalRevisions} label="revisions" />
             <StatChip value={notRevised} label="not yet revised" />
