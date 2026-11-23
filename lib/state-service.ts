@@ -12,7 +12,10 @@ export const NOTE_REQUIRED_MIN = 20;
 /**
  * The journey start date (Day 1). Technicals alone are studied from this date.
  */
-export const START_KEY = "2026-11-01";
+export const START_KEY = "2026-11-20";
+
+// Preserve the original journey's progress when consolidating its earlier days.
+const HISTORY_START_KEY = "2026-11-01";
 
 /**
  * The date technicals are meant to be finished by, as a study-day key.
@@ -154,15 +157,18 @@ export async function getAppState(): Promise<AppState> {
   const minutesByDate = new Map<string, number>();
   const todayKey = studyDayKey(new Date());
 
-  // Only sessions from START_KEY onwards count toward this study journey
-  const activeSessions = sessions.filter(
-    (s) => studyDayKey(s.completedAt) >= START_KEY,
-  );
+  // Keep existing journey records and count everything before Day 1 on Day 1.
+  const activeSessions = sessions
+    .filter((s) => studyDayKey(s.completedAt) >= HISTORY_START_KEY)
+    .map((s) => {
+      const dayKey = studyDayKey(s.completedAt);
+      return { ...s, dayKey: dayKey < START_KEY ? START_KEY : dayKey };
+    });
 
   for (const s of activeSessions) {
     const tKey = String(s.topicId);
     minutesByTopic.set(tKey, (minutesByTopic.get(tKey) ?? 0) + s.minutes);
-    const dKey = studyDayKey(s.completedAt);
+    const dKey = s.dayKey;
     minutesByDate.set(dKey, (minutesByDate.get(dKey) ?? 0) + s.minutes);
   }
 
@@ -228,7 +234,7 @@ export async function getAppState(): Promise<AppState> {
   }
 
   const todaySessions: ClientSession[] = activeSessions
-    .filter((s) => studyDayKey(s.completedAt) === todayKey)
+    .filter((s) => s.dayKey === todayKey)
     .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
     .map((s) => {
       const meta = topicLookup.get(String(s.topicId));
@@ -277,7 +283,7 @@ export async function getAppState(): Promise<AppState> {
   const requiredDailyMin =
     remainingMin > 0 && daysToDeadline > 0 ? Math.ceil(remainingMin / daysToDeadline) : null;
 
-  // Day 1 starts on START_KEY ("2026-11-01") for technicals
+  // Day 1 starts on START_KEY, including the consolidated earlier records.
   const journeyStartKey = START_KEY;
   const daysPassedBeforeToday = Math.max(0, daysBetweenKeys(journeyStartKey, todayKey));
 
