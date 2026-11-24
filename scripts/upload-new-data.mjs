@@ -58,12 +58,6 @@ const NEW_DATA = [
     topics: [{ name: "LA + POST", durationMin: h(61, 34) }],
   },
   {
-    name: "DSA",
-    order: 3,
-    color: "#09090b",
-    topics: [{ name: "DSA", durationMin: h(106, 0) }],
-  },
-  {
     name: "DBMS",
     order: 4,
     color: "#3f3f46",
@@ -80,12 +74,6 @@ const NEW_DATA = [
     order: 6,
     color: "#27272a",
     topics: [{ name: "AI total", durationMin: 17 * 60 + 39 + 24 / 60 }],
-  },
-  {
-    name: "APT",
-    order: 7,
-    color: "#09090b",
-    topics: [{ name: "APT", durationMin: h(132, 2) }],
   },
 ];
 
@@ -131,7 +119,7 @@ for (const item of NEW_DATA) {
   console.log(`✓ Added Subject: ${item.name.padEnd(12)} -> ${fmt(item.topics[0].durationMin)}`);
 }
 
-console.log(`\nSuccessfully uploaded all 7 subjects and ${totalTopics} topics into [${dbName}]:`);
+console.log(`\nSuccessfully uploaded all ${NEW_DATA.length} subjects and ${totalTopics} topics into [${dbName}]:`);
 console.log(`Total duration: ${fmt(totalMinutes)}`);
 
 await mongoose.disconnect();

@@ -7,8 +7,6 @@ import {
   Flame,
   X,
   Check,
-  CalendarClock,
-  TriangleAlert,
   ChevronRight,
   Paperclip,
   Eye,
@@ -17,14 +15,9 @@ import {
   Download,
   Sigma,
   Calculator,
-  Brain,
-  BookOpen,
   Database,
-  Network,
   Cpu,
-  Code,
   LineChart,
-  Workflow,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -34,13 +27,7 @@ import { Heatmap } from "./heatmap";
 import { DayBoundaryRefresh } from "./day-boundary-refresh";
 import { formatDuration } from "@/lib/planner";
 import { compressImage } from "@/lib/compress-image";
-import { isGeneralAptitudeSubject } from "@/lib/aptitude";
-import { useAptitudeFilter } from "./aptitude-filter-context";
-import { AptitudeToggle } from "./aptitude-toggle";
-import { isDsaSubject } from "@/lib/dsa";
-import { useDsaFilter } from "./dsa-filter-context";
-import { DsaToggle } from "./dsa-toggle";
-import { addDaysToKey, daysBetweenKeys } from "@/lib/day";
+import { addDaysToKey } from "@/lib/day";
 import type {
   AppState,
   ClientSubject,
@@ -53,16 +40,10 @@ import type {
 const SUBJECT_ICONS: Record<string, LucideIcon> = {
   CAL: Calculator,
   "LA + POST": Sigma,
-  DSA: Network,
   DBMS: Database,
   ML: LineChart,
   AI: Cpu,
-  APT: Brain,
 };
-
-function getSubjectIcon(name: string): LucideIcon {
-  return SUBJECT_ICONS[name] ?? Sparkles;
-}
 
 type Props = { state: AppState };
 
@@ -92,8 +73,6 @@ function formatBytes(bytes: number): string {
 
 export function HomeView({ state }: Props) {
   const router = useRouter();
-  const { showAptitude, toggleAptitude } = useAptitudeFilter();
-  const { showDsa, toggleDsa } = useDsaFilter();
   const [pendingTopicId, setPendingTopicId] = useState<string | null>(null);
   const [uploadingTopicId, setUploadingTopicId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -102,13 +81,7 @@ export function HomeView({ state }: Props) {
     state.todayMinutes >= state.dailyTarget ? state.todayKey : null,
   );
 
-  const displaySubjects = useMemo(() => {
-    return state.subjects.filter(
-      (s) =>
-        (showAptitude || !isGeneralAptitudeSubject(s.name)) &&
-        (showDsa || !isDsaSubject(s.name)),
-    );
-  }, [state.subjects, showAptitude, showDsa]);
+  const displaySubjects = state.subjects;
 
   const stats = useMemo(() => {
     const totalMin = displaySubjects.reduce((sum, s) => sum + s.totalMin, 0);
@@ -117,33 +90,14 @@ export function HomeView({ state }: Props) {
     const remainingMin = Math.max(0, totalMin - doneMin);
     const estDaysRemaining = Math.ceil(remainingMin / state.dailyTarget);
 
-    // If GA is included, it starts after technicals finish on the deadline.
-    const effectiveDeadlineKey = showAptitude
-      ? (() => {
-          const gaSubjects = state.subjects.filter((s) => isGeneralAptitudeSubject(s.name));
-          const gaTotalMin = gaSubjects.reduce((sum, s) => sum + s.totalMin, 0);
-          const gaDoneMin = gaSubjects.reduce((sum, s) => sum + s.doneMin, 0);
-          const gaRemainingMin = Math.max(0, gaTotalMin - gaDoneMin);
-          const gaDays = Math.ceil(gaRemainingMin / state.dailyTarget);
-          return addDaysToKey(state.deadlineKey, gaDays);
-        })()
-      : state.deadlineKey;
-
-    const daysToDeadline = Math.max(0, daysBetweenKeys(state.todayKey, effectiveDeadlineKey) + 1);
-    const requiredDailyMin =
-      remainingMin > 0 && daysToDeadline > 0 ? Math.ceil(remainingMin / daysToDeadline) : null;
-
     return {
       totalMin,
       doneMin,
       overallPercent,
       remainingMin,
       estDaysRemaining,
-      deadlineKey: effectiveDeadlineKey,
-      daysToDeadline,
-      requiredDailyMin,
     };
-  }, [displaySubjects, state.subjects, state.dailyTarget, state.todayKey, state.deadlineKey, showAptitude]);
+  }, [displaySubjects, state.dailyTarget]);
 
   const displayHeatmapDays = useMemo(() => {
     const pastAndToday = state.heatmapDays.filter((d) => !d.isFuture);
@@ -322,7 +276,7 @@ export function HomeView({ state }: Props) {
                 <p className="text-sm text-muted-foreground">
                   {hitTarget
                     ? "Daily target hit. Carry the streak into tomorrow."
-                    : "Eat your 7 hours of lectures."}
+                    : `Study ${formatDuration(state.dailyTarget)} of lectures today.`}
                 </p>
               </div>
               <div className="flex flex-wrap justify-center gap-2">
@@ -337,24 +291,12 @@ export function HomeView({ state }: Props) {
                 <StatChip>
                   <span className="tabular-nums">{stats.overallPercent.toFixed(1)}%</span>
                   <span className="text-muted-foreground">
-                    {!showDsa ? "selected subjects" : showAptitude ? "syllabus" : "technicals"}
+                    syllabus
                   </span>
                 </StatChip>
               </div>
             </div>
           </section>
-
-          <DeadlineCard
-            dailyTarget={state.dailyTarget}
-            deadlineKey={stats.deadlineKey}
-            technicalDeadlineKey={state.deadlineKey}
-            remainingMin={stats.remainingMin}
-            daysToDeadline={stats.daysToDeadline}
-            estDaysRemaining={stats.estDaysRemaining}
-            requiredDailyMin={stats.requiredDailyMin}
-            showAptitude={showAptitude}
-            showDsa={showDsa}
-          />
 
           {state.todaySessions.length > 0 && (
             <section className="shrink-0 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
@@ -387,15 +329,13 @@ export function HomeView({ state }: Props) {
           <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 bg-background/95 px-1 py-2 backdrop-blur">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                {!showDsa ? "Selected Subjects" : showAptitude ? "All Subjects" : "Technical Subjects"}
+                Subjects
               </h2>
               <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground ring-1 ring-border/40">
                 {displaySubjects.length} subjects
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2.5">
-              <AptitudeToggle compact />
-              <DsaToggle />
               <span className="tabular-nums text-xs text-muted-foreground">
                 {formatDuration(stats.doneMin)} of {formatDuration(stats.totalMin)}
               </span>
@@ -414,47 +354,6 @@ export function HomeView({ state }: Props) {
             />
           ))}
 
-          {!showDsa && (
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-border/80 bg-muted/20 p-4 text-xs text-muted-foreground transition hover:bg-muted/40">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground ring-1 ring-border/60">
-                  <Network size={16} />
-                </div>
-                <div>
-                  <div className="font-medium text-foreground">DSA is excluded</div>
-                  <div className="text-[11px] text-muted-foreground">Omitted from current calculations</div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={toggleDsa}
-                className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-foreground shadow-sm ring-1 ring-border/80 hover:bg-secondary/80 transition"
-              >
-                Include DSA
-              </button>
-            </div>
-          )}
-
-          {!showAptitude && (
-            <div className="flex items-center justify-between rounded-2xl border border-dashed border-border/80 bg-muted/20 p-4 text-xs text-muted-foreground transition hover:bg-muted/40">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground ring-1 ring-border/60">
-                  <Brain size={16} />
-                </div>
-                <div>
-                  <div className="font-medium text-foreground">General Aptitude (GA) is excluded</div>
-                  <div className="text-[11px] text-muted-foreground">Starts after Technicals (from {formatDeadline(addDaysToKey(state.deadlineKey, 1))}) · Omitted from current calculations</div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={toggleAptitude}
-                className="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-foreground shadow-sm ring-1 ring-border/80 hover:bg-secondary/80 transition"
-              >
-                Include GA
-              </button>
-            </div>
-          )}
         </section>
       </div>
 
@@ -464,117 +363,6 @@ export function HomeView({ state }: Props) {
         onDismiss={() => setCelebrating(false)}
       />
     </div>
-  );
-}
-
-/** "2026-11-10" -> "Nov 10". Fixed locale + UTC so server and client agree. */
-function formatDeadline(key: string): string {
-  const [y, m, d] = key.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-type DeadlineCardProps = {
-  dailyTarget: number;
-  deadlineKey: string;
-  technicalDeadlineKey: string;
-  remainingMin: number;
-  daysToDeadline: number;
-  estDaysRemaining: number;
-  requiredDailyMin: number | null;
-  showAptitude: boolean;
-  showDsa: boolean;
-};
-
-/**
- * The two numbers that decide whether the plan holds: days of work still in the
- * syllabus at the daily target, against days actually left on the calendar.
- */
-function DeadlineCard({
-  dailyTarget,
-  deadlineKey,
-  technicalDeadlineKey,
-  remainingMin,
-  daysToDeadline,
-  estDaysRemaining,
-  requiredDailyMin,
-  showAptitude,
-  showDsa,
-}: DeadlineCardProps) {
-  const buffer = daysToDeadline - estDaysRemaining;
-  const label = formatDeadline(deadlineKey);
-  const technicalDeadlineLabel = formatDeadline(technicalDeadlineKey);
-  const scopeLabel = !showDsa ? "Selected Subjects" : showAptitude ? "Syllabus" : "Technicals";
-
-  let tone: string;
-  let icon: React.ReactNode;
-  let verdict: string;
-
-  if (remainingMin === 0) {
-    tone = "bg-secondary text-foreground ring-border/80";
-    icon = <Check size={13} className="mt-px shrink-0 text-foreground" strokeWidth={3} />;
-    verdict = `${scopeLabel} finished, ${daysToDeadline} days ahead of ${label}.`;
-  } else if (daysToDeadline === 0) {
-    tone = "bg-secondary text-foreground ring-border/80";
-    icon = <TriangleAlert size={13} className="mt-px shrink-0 text-foreground" />;
-    verdict = `${label} has passed — ${estDaysRemaining} more days at ${formatDuration(dailyTarget)}/day to finish.`;
-  } else if (buffer > 0) {
-    tone = "bg-secondary text-foreground ring-border/80";
-    icon = <Check size={13} className="mt-px shrink-0 text-foreground" strokeWidth={3} />;
-    verdict = `On track — ${buffer} ${buffer === 1 ? "day" : "days"} of buffer at ${formatDuration(dailyTarget)}/day.`;
-  } else if (buffer === 0) {
-    tone = "bg-secondary text-foreground ring-border/80";
-    icon = <CalendarClock size={13} className="mt-px shrink-0 text-foreground" />;
-    verdict = `Exactly on pace — every day up to ${label} has to hit ${formatDuration(dailyTarget)}.`;
-  } else {
-    tone = "bg-secondary text-foreground ring-border/80";
-    icon = <TriangleAlert size={13} className="mt-px shrink-0 text-foreground" />;
-    verdict = `${-buffer} ${buffer === -1 ? "day" : "days"} short — needs ${formatDuration(
-      requiredDailyMin ?? dailyTarget,
-    )}/day to make ${label}.`;
-  }
-
-  return (
-    <section className="shrink-0 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
-      <div className="mb-3 flex items-baseline justify-between">
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Finish {scopeLabel} by {label}
-          </h2>
-          <p className="text-[11px] text-muted-foreground/80">
-            {showAptitude
-              ? `Technicals by ${technicalDeadlineLabel} + General Aptitude after`
-              : `General Aptitude starts after ${technicalDeadlineLabel}`}
-          </p>
-        </div>
-        <span className="tabular-nums text-xs text-muted-foreground">
-          {formatDuration(remainingMin)} left
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-2xl bg-secondary/60 px-3 py-2.5">
-          <div className="text-xl font-semibold tabular-nums">{estDaysRemaining}</div>
-          <div className="text-[11px] leading-tight text-muted-foreground">
-            days needed at {formatDuration(dailyTarget)}/day
-          </div>
-        </div>
-        <div className="rounded-2xl bg-secondary/60 px-3 py-2.5">
-          <div className="text-xl font-semibold tabular-nums">{daysToDeadline}</div>
-          <div className="text-[11px] leading-tight text-muted-foreground">
-            days left until {label}
-          </div>
-        </div>
-      </div>
-
-      <div className={`mt-3 flex items-start gap-1.5 rounded-2xl px-3 py-2 text-[11px] font-medium ring-1 ${tone}`}>
-        {icon}
-        <span>{verdict}</span>
-      </div>
-    </section>
   );
 }
 
@@ -639,7 +427,7 @@ function SubjectSection({
   const [expanded, setExpanded] = useState(false);
   const remainingTopics = subject.topics.filter((t) => !t.isComplete).length;
   const isAiTotal = subject.name === "AI" && subject.topics.length === 1;
-  const Icon = getSubjectIcon(subject.name);
+  const Icon = SUBJECT_ICONS[subject.name] ?? Sparkles;
 
   return (
     <motion.section

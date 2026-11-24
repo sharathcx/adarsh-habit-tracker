@@ -21,12 +21,6 @@ export const SEED_SUBJECTS: SeedSubject[] = [
     topics: [{ name: "LA + POST", durationMin: h(61, 34) }],
   },
   {
-    name: "DSA",
-    order: 3,
-    color: "#09090b",
-    topics: [{ name: "DSA", durationMin: h(106, 0) }],
-  },
-  {
     name: "DBMS",
     order: 4,
     color: "#3f3f46",
@@ -43,11 +37,5 @@ export const SEED_SUBJECTS: SeedSubject[] = [
     order: 6,
     color: "#27272a",
     topics: [{ name: "AI total", durationMin: 17 * 60 + 39 + 24 / 60 }],
-  },
-  {
-    name: "APT",
-    order: 7,
-    color: "#09090b",
-    topics: [{ name: "APT", durationMin: h(132, 2) }],
   },
 ];

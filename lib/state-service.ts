@@ -4,24 +4,20 @@ import { Topic } from "@/lib/models/Topic";
 import { StudySession } from "@/lib/models/StudySession";
 import { studyDayKey, addDaysToKey, daysBetweenKeys } from "@/lib/day";
 import { seedDatabase } from "@/lib/seed";
+import { DAILY_TARGET_MIN } from "@/lib/planner";
+import { isGeneralAptitudeSubject } from "@/lib/aptitude";
+import { isDsaSubject } from "@/lib/dsa";
 
-
-export const DAILY_TARGET_MIN = 420;
+export { DAILY_TARGET_MIN } from "@/lib/planner";
 export const NOTE_REQUIRED_MIN = 20;
 
 /**
- * The journey start date (Day 1). Technicals alone are studied from this date.
+ * The journey start date (Day 1).
  */
-export const START_KEY = "2026-11-20";
+export const START_KEY = "2026-11-24";
 
 // Preserve the original journey's progress when consolidating its earlier days.
 const HISTORY_START_KEY = "2026-11-01";
-
-/**
- * The date technicals are meant to be finished by, as a study-day key.
- * General Aptitude starts after this date.
- */
-export const DEADLINE_KEY = "2026-12-20";
 
 export type ClientNote = {
   _id: string;
@@ -88,12 +84,6 @@ export type AppState = {
   estDaysRemaining: number;
   /** `YYYY-MM-DD` the journey started (Day 1). */
   startKey: string;
-  /** `YYYY-MM-DD` the syllabus is meant to be finished by. */
-  deadlineKey: string;
-  /** Study days from today through the deadline, inclusive. 0 once it passes. */
-  daysToDeadline: number;
-  /** Minutes/day needed to finish by the deadline, or null when that is moot. */
-  requiredDailyMin: number | null;
   heatmapDays: HeatmapDay[];
 };
 
@@ -152,6 +142,11 @@ export async function getAppState(): Promise<AppState> {
     ]);
   }
 
+  subjects = subjects.filter((s) => !isDsaSubject(s.name) && !isGeneralAptitudeSubject(s.name));
+  const subjectIds = new Set(subjects.map((s) => String(s._id)));
+  topics = topics.filter((t) => subjectIds.has(String(t.subjectId)));
+  const topicIds = new Set(topics.map((t) => String(t._id)));
+  sessions = sessions.filter((s) => topicIds.has(String(s.topicId)));
 
   const minutesByTopic = new Map<string, number>();
   const minutesByDate = new Map<string, number>();
@@ -276,13 +271,6 @@ export async function getAppState(): Promise<AppState> {
   const remainingMin = Math.max(0, totalMin - doneMin);
   const estDaysRemaining = Math.ceil(remainingMin / DAILY_TARGET_MIN);
 
-  // Days still available, counting today: today's target is still live, and
-  // estDaysRemaining counts today too, so the two numbers compare like for
-  // like. Both shrink as minutes land, which is what makes the gap meaningful.
-  const daysToDeadline = Math.max(0, daysBetweenKeys(todayKey, DEADLINE_KEY) + 1);
-  const requiredDailyMin =
-    remainingMin > 0 && daysToDeadline > 0 ? Math.ceil(remainingMin / daysToDeadline) : null;
-
   // Day 1 starts on START_KEY, including the consolidated earlier records.
   const journeyStartKey = START_KEY;
   const daysPassedBeforeToday = Math.max(0, daysBetweenKeys(journeyStartKey, todayKey));
@@ -290,7 +278,7 @@ export async function getAppState(): Promise<AppState> {
   // Dynamic total journey days: past days elapsed + remaining days needed.
   // If a day is missed, daysPassedBeforeToday increases without doneMin advancing,
   // causing totalJourneyDays (and heatmap boxes) to automatically increase by +1!
-  const totalJourneyDays = Math.max(1, daysPassedBeforeToday + Math.max(0, estDaysRemaining));
+  const totalJourneyDays = Math.max(1, daysPassedBeforeToday + Math.max(1, estDaysRemaining));
 
   const heatmapDays: HeatmapDay[] = [];
   for (let i = 0; i < totalJourneyDays; i++) {
@@ -316,9 +304,6 @@ export async function getAppState(): Promise<AppState> {
     todayKey,
     estDaysRemaining,
     startKey: START_KEY,
-    deadlineKey: DEADLINE_KEY,
-    daysToDeadline,
-    requiredDailyMin,
     heatmapDays,
   };
 }
